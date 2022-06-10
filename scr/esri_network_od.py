@@ -13,9 +13,9 @@ def construct_nextwork(timestamp):
     arcpy.CheckOutExtension('Foundation') # Register the extensions
     arcpy.CheckOutExtension('Network')
     basePath = r"D:\Luyu\nyc_bikesharing\\"
-    geodatabasesPath = basePath + "network_data\\"
+    geodatabasesPath = basePath + "network_data_vehicle\\"
     sr = 'PROJCS["NAD_1983_StatePlane_New_York_Long_Island_FIPS_3104",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Lambert_Conformal_Conic"],PARAMETER["False_Easting",300000.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",-74.0],PARAMETER["Standard_Parallel_1",40.66666666666666],PARAMETER["Standard_Parallel_2",41.03333333333333],PARAMETER["Latitude_Of_Origin",40.16666666666666],UNIT["Meter",1.0]]'
-    networkName = "nyc_envelope_roads"
+    networkName = "nyc_vehicles"
     sidewalkLocation = basePath + "nyc_bikesharing.gdb\\" + networkName
 
     arcpy.CreateFileGDB_management(geodatabasesPath, "OD")
@@ -26,11 +26,13 @@ def construct_nextwork(timestamp):
     arcpy.CreateFeatureDataset_management(geodatabasePath, "network", sr)
     arcpy.FeatureClassToGeodatabase_conversion(sidewalkLocation, geodatabasePath + "//network")
     arcpy.Rename_management("network//" + networkName, "raw_network_layer")
+    # arcpy.na.CreateNetworkDataset(geodatabasePath + "//network", "raw_network_layer", "network//raw_network_layer", "ELEVATION_FIELDS")
     arcpy.CreateNetworkDatasetFromTemplate_na(basePath + "//schema.xml", geodatabasePath + "//network")
     network = arcpy.na.BuildNetwork(geodatabasePath + "//network//raw_network_layer")
 
+    return False
     # Create stops as Origin and Destination layers in OD analysis layer
-    csvFile = basePath + "network_data\\"+ "stops.csv"
+    csvFile = geodatabasesPath + "stops.csv"
     wgs84 = r'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137,298.257223563]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]]'
     stops_wgs = arcpy.management.MakeXYEventLayer(csvFile, "XLON", "XLAT", "stops_wgs", wgs84)
     arcpy.management.Project(stops_wgs, "stops", sr)
